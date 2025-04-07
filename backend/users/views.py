@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
-from foodgram.models import Subscriptions
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from foodgram.models import Subscriptions
 from users.paginations import UsersPagination
 from users.permissions import UpdateOnlyAdmin
 from users.serializers import (AvatarSerializer, SubscribeSerializer,
