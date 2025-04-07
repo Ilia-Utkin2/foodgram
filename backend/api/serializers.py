@@ -1,6 +1,5 @@
-from rest_framework import serializers
-
 from foodgram.models import AmountIngredients, Ingredient, Recipe, Tag
+from rest_framework import serializers
 from users.serializers import Base64ImageField, UserSerializer
 
 

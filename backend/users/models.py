@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -47,4 +47,3 @@ class User(AbstractBaseUser):
 
     def get_last_name(self):
         return self.last_name
-

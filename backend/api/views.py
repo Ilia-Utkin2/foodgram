@@ -3,13 +3,12 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from foodgram.models import (AmountIngredients, Favorited, Ingredient, Recipe,
+                             ShoppingCart, Tag)
 from reportlab.pdfbase import pdfmetrics
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from foodgram.models import (AmountIngredients, Favorited, Ingredient, Recipe,
-                             ShoppingCart, Tag)
 from users.serializers import SubscribRiciptesSerializer
 
 from .pagination import RecipPagination
@@ -127,7 +126,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         user = request.user
         try:
-            recipe_ids = user.shopping_cart.all().values_list('recipe_id', flat=True)
+            recipe_ids = user.shopping_cart.all().values_list(
+                'recipe_id', flat=True
+            )
             if not recipe_ids:
                 return Response(
                     {'detail': 'Ваша корзина покупок пуста'},
@@ -160,10 +161,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
 
         text_content = "\n".join([
-            f"{item['ingredient__name']} - {item['total_amount']} {item['ingredient__measurement_unit']}"
+            f"{item['ingredient__name']} - {item['total_amount']} "
+            f"{item['ingredient__measurement_unit']}"
             for item in ingredients
         ])
         response = HttpResponse(
             text_content, content_type='text/plain; charset=utf-8')
-        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_list.txt"'
+        )
         return response

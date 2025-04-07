@@ -36,7 +36,8 @@ class UserSerializer(serializers.ModelSerializer):
         max_length=150,
         validators=[RegexValidator(
             regex=r'^[\w.@+-]+\Z',
-            message='Username может содержать только буквы, цифры, и символы @/./+/-/_',
+            message='Username может содержать только буквы, цифры, '
+                    'и символы @/./+/-/_',
             code='invalid_username'
         ), UniqueValidator(queryset=User.objects.all())
         ]
@@ -90,17 +91,18 @@ class AvatarSerializer(serializers.Serializer):
         instance.save()
         return instance
 
+
 class SubscribRiciptesSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+
 
 class SubscribeSerializer(serializers.ModelSerializer):
     recipes = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
-
 
     class Meta:
         model = User
@@ -108,7 +110,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
             'email', 'id', 'username', 'first_name', 'last_name',
             'is_subscribed', 'recipes', 'recipes_count', 'avatar'
         )
-    
+
     def get_is_subscribed(self, obj):
         if self.context.get('request') is None:
             return False
@@ -116,15 +118,15 @@ class SubscribeSerializer(serializers.ModelSerializer):
         if user in obj.follower.all():
             return True
         return False
-    
+
     def get_recipes_count(self, obj):
         return obj.recipes.count()
-    
+
     def get_recipes(self, obj):
         request = self.context.get('request')
         recipes_limit = request.query_params.get('recipes_limit')
         queryset = obj.recipes.all()
-        
+
         if recipes_limit:
             try:
                 recipes_limit = int(recipes_limit)

@@ -90,12 +90,11 @@ class Recipe(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.short_code:
-            self.short_code = secrets.token_urlsafe(4)[:6]  # Например, "abc123"
+            self.short_code = secrets.token_urlsafe(4)[:6]
         super().save(*args, **kwargs)
 
     def get_short_url(self):
         return f"https://example.com/r/{self.short_code}"
-
 
     def __str__(self):
         return self.name
@@ -125,7 +124,8 @@ class AmountIngredients(models.Model):
     )
 
     def __str__(self):
-        return f'{self.ingredient.name} - {self.amount} {self.ingredient.measurement_unit}'
+        return (f'{self.ingredient.name} - '
+                f'{self.amount} {self.ingredient.measurement_unit}')
 
     class Meta:
         verbose_name = 'Количество ингредиента'
@@ -205,7 +205,7 @@ class Subscriptions(models.Model):
         on_delete=models.CASCADE,
         related_name='following'
     )
-    
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
