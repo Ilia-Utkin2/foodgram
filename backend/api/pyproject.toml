@@ -1,4 +1,0 @@
-[isort]
-profile = black
-known_first_party = api,users
-line_length = 88
