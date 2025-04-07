@@ -3,19 +3,20 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from reportlab.pdfbase import pdfmetrics
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from foodgram.models import (AmountIngredients, Favorited, Ingredient, Recipe,
-                             ShoppingCart, Tag)
+from foodgram.models import (
+    AmountIngredients, Favorited, Ingredient, Recipe, ShoppingCart, Tag
+)
 from users.serializers import SubscribRiciptesSerializer
-
 from .pagination import RecipPagination
 from .permissions import UpdateOnlyAdminOrAuthor
-from .serializers import (IngredientSerializer, RecipeCreateUpdateSerializer,
-                          RecipeSerializer, TagSerializer)
+from .serializers import (
+    IngredientSerializer, RecipeCreateUpdateSerializer, RecipeSerializer,
+    TagSerializer
+)
 
 User = get_user_model()
 
@@ -65,12 +66,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 )
             Favorited.objects.create(user=user, recipe=recipe)
             serializer = SubscribRiciptesSerializer(recipe)
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED
-                            )
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
 
         favorited = Favorited.objects.filter(
-            user=user, recipe=recipe).first()
+            user=user, recipe=recipe
+        ).first()
 
         if not favorited:
             return Response(
@@ -80,11 +83,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         favorited.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True,
-            methods=['post', 'delete'],
-            permission_classes=[permissions.IsAuthenticated],
-            url_path='shopping_cart'
-            )
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='shopping_cart'
+    )
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         user = request.user
@@ -97,7 +101,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 )
             ShoppingCart.objects.create(user=user, recipe=recipe)
             serializer = SubscribRiciptesSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
 
         shopping_cart = ShoppingCart.objects.get(user=user, recipe=recipe)
 
@@ -109,8 +116,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['get'],
-            url_path='get-link')
+    @action(
+        detail=True,
+        methods=['get'],
+        url_path='get-link'
+    )
     def get_link(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         return Response(
@@ -127,7 +137,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         user = request.user
         try:
-            recipe_ids = user.shopping_cart.all().values_list('recipe_id', flat=True)
+            recipe_ids = user.shopping_cart.all().values_list(
+                'recipe_id', flat=True
+            )
             if not recipe_ids:
                 return Response(
                     {'detail': 'Ваша корзина покупок пуста'},
@@ -150,9 +162,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 .annotate(total_amount=Sum('amount'))
                 .order_by('ingredient__name')
             )
-            print([(i['ingredient__name'], i['total_amount'],
-                  i['ingredient__measurement_unit']) for i in ingredients])
-            print(pdfmetrics.getRegisteredFontNames())
         except Exception as e:
             return Response(
                 {'detail': f'Ошибка при получении ингредиентов: {str(e)}'},
@@ -160,10 +169,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
 
         text_content = "\n".join([
-            f"{item['ingredient__name']} - {item['total_amount']} {item['ingredient__measurement_unit']}"
+            f"{item['ingredient__name']} - {item['total_amount']} "
+            f"{item['ingredient__measurement_unit']}"
             for item in ingredients
         ])
         response = HttpResponse(
-            text_content, content_type='text/plain; charset=utf-8')
-        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+            text_content,
+            content_type='text/plain; charset=utf-8'
+        )
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_list.txt"'
+        )
         return response
