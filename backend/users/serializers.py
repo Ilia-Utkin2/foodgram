@@ -3,10 +3,9 @@ import base64
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.validators import RegexValidator
+from foodgram.models import Recipe
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
-from foodgram.models import Recipe
 
 User = get_user_model()
 
