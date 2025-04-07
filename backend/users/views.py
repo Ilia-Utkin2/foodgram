@@ -172,7 +172,11 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         serializer_context = {'request': request}
         page = self.paginate_queryset(subscribed_authors)
-        serializer = self.get_serializer(page, many=True,context=serializer_context)
+        serializer = self.get_serializer(
+            page,
+            many=True,
+            context=serializer_context
+        )
         return self.get_paginated_response(serializer.data)
 
     def update(self, request, *args, **kwargs):
