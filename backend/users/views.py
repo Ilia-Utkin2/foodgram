@@ -19,7 +19,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # permission_classes = [UpdateOnlyAdmin]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     pagination_class = UsersPagination
