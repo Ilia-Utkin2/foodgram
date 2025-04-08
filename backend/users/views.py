@@ -7,7 +7,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from users.paginations import UsersPagination
-from users.permissions import UpdateOnlyAdmin
 from users.serializers import (AvatarSerializer, SubscribeSerializer,
                                UserSerializer)
 
