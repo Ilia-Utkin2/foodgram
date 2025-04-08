@@ -14,7 +14,7 @@ services:
   backend:
     image: utilal/foodgram_backend
     volumes:
-      - static:/static
+      - static:/backend_static
       - media:/media
     env_file: .env
   frontend:
@@ -22,7 +22,7 @@ services:
     image: utilal/foodgram_frontend
     command: cp -r /app/build/. /static/
     volumes:
-      - static:/static
+      - static:/frontend_static
   gateway:
     image: utilal/foodgram_gateway
     env_file: .env
