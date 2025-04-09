@@ -3,12 +3,13 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from foodgram.models import (AmountIngredients, Favorited, Ingredient, Recipe,
-                             ShoppingCart, Tag)
 from reportlab.pdfbase import pdfmetrics
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from foodgram.models import (AmountIngredients, Favorited, Ingredient, Recipe,
+                             ShoppingCart, Tag)
 from users.serializers import SubscribRiciptesSerializer
 
 from .pagination import RecipPagination
@@ -68,8 +69,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_201_CREATED
                             )
 
-        favorited = Favorited.objects.filter(
-            user=user, recipe=recipe).first()
+        favorited = user.favorited.filter(pk=recipe.pk)
 
         if not favorited:
             return Response(
@@ -98,7 +98,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = SubscribRiciptesSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        shopping_cart = ShoppingCart.objects.get(user=user, recipe=recipe)
+        shopping_cart = user.shopping_cart.filter(pk=recipe.pk)
 
         if not shopping_cart:
             return Response(
@@ -113,7 +113,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         return Response(
-            {"short-link": recipe.get_short_url()},
+            {'short-link': recipe.get_short_url()},
             status=status.HTTP_200_OK
         )
 
@@ -125,40 +125,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def download_shopping_cart(self, request):
         user = request.user
-        try:
-            recipe_ids = user.shopping_cart.all().values_list(
-                'recipe_id', flat=True
-            )
-            if not recipe_ids:
-                return Response(
-                    {'detail': 'Ваша корзина покупок пуста'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        except Exception as e:
+
+        recipe_ids = user.shopping_cart.all().values_list(
+            'recipe_id', flat=True
+        )
+        if not recipe_ids:
             return Response(
-                {'detail': f'Ошибка при получении корзины: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {'detail': 'Ваша корзина покупок пуста'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            ingredients = (
-                AmountIngredients.objects
-                .filter(recipe_id__in=recipe_ids)
-                .values(
-                    'ingredient__name',
-                    'ingredient__measurement_unit'
-                )
-                .annotate(total_amount=Sum('amount'))
-                .order_by('ingredient__name')
+        ingredients = (
+            AmountIngredients.objects
+            .filter(recipe_id__in=recipe_ids)
+            .values(
+                'ingredient__name',
+                'ingredient__measurement_unit'
             )
-            print([(i['ingredient__name'], i['total_amount'],
-                  i['ingredient__measurement_unit']) for i in ingredients])
-            print(pdfmetrics.getRegisteredFontNames())
-        except Exception as e:
-            return Response(
-                {'detail': f'Ошибка при получении ингредиентов: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            .annotate(total_amount=Sum('amount'))
+            .order_by('ingredient__name')
+        )
 
         text_content = "\n".join([
             f"{item['ingredient__name']} - {item['total_amount']} "

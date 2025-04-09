@@ -3,9 +3,11 @@ import base64
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.validators import RegexValidator
-from foodgram.models import Recipe
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+
+from constants import MAX_EMAIL, MAX_USERNAME
+from foodgram.models import Recipe
 
 User = get_user_model()
 
@@ -28,11 +30,11 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для редактирования администратором."""
 
     email = serializers.EmailField(
-        max_length=254,
+        max_length=MAX_EMAIL,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     username = serializers.CharField(
-        max_length=150,
+        max_length=MAX_USERNAME,
         validators=[RegexValidator(
             regex=r'^[\w.@+-]+\Z',
             message='Username может содержать только буквы, цифры, '
@@ -52,15 +54,15 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('avatar', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
-        if self.context.get('request') is None:
+        request = self.context['request']
+        if request is None:
             return False
-        user = self.context.get('request').user
+        user = request.user
         if user in obj.follower.all():
             return True
         return False
 
     def create(self, validated_data):
-        # Используем UserManager для создания пользователя
         user = User.objects.create_user(
             email=validated_data['email'],
             username=validated_data['username'],
@@ -111,9 +113,10 @@ class SubscribeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        if self.context.get('request') is None:
+        request = self.context['request']
+        if request is None:
             return False
-        user = self.context.get('request').user
+        user = request.user
         if user in obj.follower.all():
             return True
         return False
@@ -122,7 +125,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
         return obj.recipes.count()
 
     def get_recipes(self, obj):
-        request = self.context.get('request')
+        request = self.context['request']
         recipes_limit = request.query_params.get('recipes_limit')
         queryset = obj.recipes.all()
 

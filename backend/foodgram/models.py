@@ -1,51 +1,57 @@
 import secrets
 
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+from constants import (MAX_AMOUNT, MAX_COOKING_TIME, MAX_INGREDIENT_NAME,
+                       MAX_MEASUREMENT_UNIT, MAX_RECIPE, MAX_SHORT_CODE,
+                       MAX_TAG, MIN_AMOUNT, MIN_COOKING_TIME)
 
 User = get_user_model()
 
 
 class Tag(models.Model):
     name = models.CharField(
-        max_length=50,
+        max_length=MAX_TAG,
         verbose_name='Название тега',
         help_text='Введите название тега'
     )
     slug = models.SlugField(
-        max_length=50,
+        max_length=MAX_TAG,
         unique=True,
         verbose_name='URL-идентификатор',
         help_text='Уникальный идентификатор для URL'
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
 
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=256,
+        max_length=MAX_INGREDIENT_NAME,
         verbose_name='Название ингредиента',
         help_text='Введите название ингредиента'
     )
     measurement_unit = models.CharField(
-        max_length=100,
+        max_length=MAX_MEASUREMENT_UNIT,
         verbose_name='Единица измерения',
         help_text='Введите единицу измерения'
     )
 
-    def __str__(self):
-        return f'{self.name} ({self.measurement_unit})'
-
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ['name']
+
+    def __str__(self):
+        return f'{self.name} ({self.measurement_unit})'
 
 
 class Recipe(models.Model):
@@ -57,7 +63,7 @@ class Recipe(models.Model):
         help_text='Выберите автора рецепта'
     )
     name = models.CharField(
-        max_length=100,
+        max_length=MAX_RECIPE,
         verbose_name='Название рецепта',
         help_text='Введите название рецепта'
     )
@@ -84,9 +90,17 @@ class Recipe(models.Model):
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления (минуты)',
         help_text='Введите время приготовления в минутах',
-        validators=[MinValueValidator(1)]
+        validators=[
+            MinValueValidator(MIN_COOKING_TIME),
+            MaxValueValidator(MAX_COOKING_TIME)
+        ]
     )
-    short_code = models.CharField(max_length=8, unique=True, blank=True)
+    short_code = models.CharField(
+        max_length=MAX_SHORT_CODE, unique=True, blank=True)
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата публикации'
+    )
 
     def save(self, *args, **kwargs):
         if not self.short_code:
@@ -96,12 +110,13 @@ class Recipe(models.Model):
     def get_short_url(self):
         return f"https://example.com/r/{self.short_code}"
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+        ordering = ['-pub_date']
+
+    def __str__(self):
+        return self.name
 
 
 class AmountIngredients(models.Model):
@@ -117,25 +132,29 @@ class AmountIngredients(models.Model):
         related_name='amount_ingredients',
         verbose_name='Ингредиент'
     )
-    amount = models.PositiveIntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         help_text='Введите количество ингредиента',
-        validators=[MinValueValidator(1)]
+        validators=[
+            MinValueValidator(MIN_AMOUNT),
+            MaxValueValidator(MAX_AMOUNT)
+        ]
     )
-
-    def __str__(self):
-        return (f'{self.ingredient.name} - '
-                f'{self.amount} {self.ingredient.measurement_unit}')
 
     class Meta:
         verbose_name = 'Количество ингредиента'
         verbose_name_plural = 'Количество ингредиентов'
+        ordering = ['ingredient__name']
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
                 name='unique_recipe_ingredient'
             )
         ]
+
+    def __str__(self):
+        return (f'{self.ingredient.name} - '
+                f'{self.amount} {self.ingredient.measurement_unit}')
 
 
 class Favorited(models.Model):
@@ -151,19 +170,24 @@ class Favorited(models.Model):
         related_name='favorited_by',
         verbose_name='Рецепт'
     )
-
-    def __str__(self):
-        return f'{self.user.username} - Избранное'
+    added_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата добавления'
+    )
 
     class Meta:
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
+        ordering = ['-added_date']
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
                 name='unique_favorited'
             )
         ]
+
+    def __str__(self):
+        return f'{self.user.username} - Избранное'
 
 
 class ShoppingCart(models.Model):
@@ -179,19 +203,24 @@ class ShoppingCart(models.Model):
         related_name='in_shopping_cart',
         verbose_name='Рецепт'
     )
-
-    def __str__(self):
-        return f'{self.user.username} - Подписки'
+    added_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата добавления'
+    )
 
     class Meta:
         verbose_name = 'Корзина покупок'
         verbose_name_plural = 'Корзины покупок'
+        ordering = ['-added_date']
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
                 name='unique_shopping_cart'
             )
         ]
+
+    def __str__(self):
+        return f'{self.user.username} - Подписки'
 
 
 class Subscriptions(models.Model):
@@ -205,8 +234,13 @@ class Subscriptions(models.Model):
         on_delete=models.CASCADE,
         related_name='following'
     )
+    sub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата подписки'
+    )
 
     class Meta:
+        ordering = ['-sub_date']
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],
