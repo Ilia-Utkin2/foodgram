@@ -8,9 +8,9 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from api.users_serializers import SubscribRiciptesSerializer
 from foodgram.models import (AmountIngredients, Favorited, Ingredient, Recipe,
                              ShoppingCart, Tag)
-from users.serializers import SubscribRiciptesSerializer
 
 from .pagination import RecipPagination
 from .permissions import UpdateOnlyAdminOrAuthor
