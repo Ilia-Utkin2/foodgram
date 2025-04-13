@@ -108,7 +108,7 @@ class Recipe(models.Model):
         super().save(*args, **kwargs)
 
     def get_short_url(self):
-        return f"https://example.com/r/{self.short_code}"
+        return f'http://localhost:7000/recipes/{self.id}'
 
     class Meta:
         verbose_name = 'Рецепт'
@@ -172,7 +172,8 @@ class Favorited(models.Model):
     )
     added_date = models.DateTimeField(
         auto_now_add=True,
-        verbose_name='Дата добавления'
+        verbose_name='Дата добавления',
+        null=True
     )
 
     class Meta:

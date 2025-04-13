@@ -67,7 +67,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         }
 
     def get_is_favorited(self, obj):
-        request = self.context['request']
+        request = self.context.get('request')
         if request is None:
             return False
         user = request.user
@@ -76,7 +76,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return False
 
     def get_is_in_shopping_cart(self, obj):
-        request = self.context['request']
+        request = self.context.get('request')
         if request is None:
             return False
         user = request.user

@@ -11,6 +11,7 @@ from api.users_serializers import SubscribRiciptesSerializer
 from foodgram.models import (AmountIngredients, Favorited, Ingredient, Recipe,
                              ShoppingCart, Tag)
 
+from .filters import RecipeFilter
 from .pagination import RecipPagination
 from .permissions import UpdateOnlyAdminOrAuthor
 from .serializers import (IngredientSerializer, RecipeCreateUpdateSerializer,
@@ -36,7 +37,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = [UpdateOnlyAdminOrAuthor]
     pagination_class = RecipPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('author', 'tags')
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update', 'update']:
