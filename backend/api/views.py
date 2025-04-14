@@ -1,3 +1,4 @@
+from api.users_serializers import SubscribRiciptesSerializer
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
@@ -7,7 +8,6 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.users_serializers import SubscribRiciptesSerializer
 from foodgram.models import (AmountIngredients, Favorited, Ingredient, Recipe,
                              ShoppingCart, Tag)
 
