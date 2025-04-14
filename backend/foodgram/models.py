@@ -99,6 +99,7 @@ class Recipe(models.Model):
         max_length=MAX_SHORT_CODE, unique=True, blank=True)
     pub_date = models.DateTimeField(
         auto_now_add=True,
+        null=True,
         verbose_name='Дата публикации'
     )
 
@@ -206,7 +207,8 @@ class ShoppingCart(models.Model):
     )
     added_date = models.DateTimeField(
         auto_now_add=True,
-        verbose_name='Дата добавления'
+        verbose_name='Дата добавления',
+        null=True
     )
 
     class Meta:
@@ -237,7 +239,8 @@ class Subscriptions(models.Model):
     )
     sub_date = models.DateTimeField(
         auto_now_add=True,
-        verbose_name='Дата подписки'
+        verbose_name='Дата подписки',
+        null=True
     )
 
     class Meta:
