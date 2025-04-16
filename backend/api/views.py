@@ -1,4 +1,3 @@
-from api.users_serializers import SubscribRiciptesSerializer
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
@@ -8,11 +7,10 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from api.users_serializers import SubscribRiciptesSerializer
 from foodgram.models import (AmountIngredients, Favorited, Ingredient, Recipe,
                              ShoppingCart, Tag)
 
-from .filters import RecipeFilter
-from .pagination import RecipPagination
 from .permissions import UpdateOnlyAdminOrAuthor
 from .serializers import (IngredientSerializer, RecipeCreateUpdateSerializer,
                           RecipeSerializer, TagSerializer)
@@ -35,9 +33,27 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [UpdateOnlyAdminOrAuthor]
-    pagination_class = RecipPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = RecipeFilter
+
+    def get_queryset(self):
+
+        queryset = super().get_queryset()
+
+        queryset = queryset.select_related('author').prefetch_related('tags')
+
+        author_id = self.request.query_params.get('author')
+        tags = self.request.query_params.getlist('tags')
+        is_favorited = self.request.query_params.get('is_favorited')
+        if author_id:
+            queryset = queryset.filter(author_id=author_id)
+
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+
+        if is_favorited == '1':
+            queryset = queryset.filter(favorited_by__user=self.request.user)
+
+        return queryset
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update', 'update']:
@@ -58,7 +74,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
 
         if request.method == 'POST':
-            if user.favorited.filter(pk=recipe.pk).exists():
+            if Favorited.objects.filter(user=user, recipe=recipe).exists():
                 return Response(
                     {'errors': 'Рецепт уже в избранном'},
                     status=status.HTTP_400_BAD_REQUEST

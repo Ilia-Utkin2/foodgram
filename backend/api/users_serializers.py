@@ -1,12 +1,12 @@
 import base64
 
-from constants import MAX_EMAIL, MAX_USERNAME
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from constants import MAX_EMAIL, MAX_USERNAME
 from foodgram.models import Recipe
 
 User = get_user_model()

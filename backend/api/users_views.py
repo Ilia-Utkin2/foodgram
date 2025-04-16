@@ -1,14 +1,14 @@
-from api.users_serializers import (AvatarSerializer, SubscribeSerializer,
-                                   UserSerializer)
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from users.paginations import UsersPagination
 
+from api.users_serializers import (AvatarSerializer, SubscribeSerializer,
+                                   UserSerializer)
 from foodgram.models import Subscriptions
+from users.paginations import UsersPagination
 
 User = get_user_model()
 

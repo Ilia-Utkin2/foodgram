@@ -1,8 +1,8 @@
+from rest_framework import serializers
+
 from api.users_serializers import Base64ImageField, UserSerializer
 from constants import (MAX_AMOUNT, MAX_COOKING_TIME, MIN_AMOUNT,
                        MIN_COOKING_TIME)
-from rest_framework import serializers
-
 from foodgram.models import AmountIngredients, Ingredient, Recipe, Tag
 
 
@@ -68,7 +68,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
-        if request is None:
+        if request:
             return False
         user = request.user
         if user.is_authenticated:
