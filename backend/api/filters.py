@@ -26,4 +26,3 @@ class RecipeFilter(filters.FilterSet):
         if value == 1 and user.is_authenticated:
             return queryset.favorited_by.all()
         return queryset
-
